@@ -28,23 +28,29 @@ import kotlin.arrayOf as arrayOf1
 
 
 class MainActivity : AppCompatActivity() {
+    // PAGINA WEB A LA QUE VAMOS A APUNTAR
+    private val BASE_URL = "https://www.mallorcamoves.es"
 
-    private val BASE_URL = "https://h5p.org/audio-recorder"
+
+    // USER-AGENT (MUY IMPORTANTE PARA EL LOGIN CON GOOGLE)
     private val USER_AGENT =
-        "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36"
+        "Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36"
+
+
+    // PERMISOS QUE NECESITAMOS PARA QUE LA APP FUNCIONE CORRECTAMENTE
     private val permisos = arrayOf1(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.CAMERA,
+        ACCESS_FINE_LOCATION,
+        READ_EXTERNAL_STORAGE,
+        WRITE_EXTERNAL_STORAGE,
+        CAMERA,
         RECORD_AUDIO,
-        Manifest.permission.ACCESS_MEDIA_LOCATION,
-        Manifest.permission.MODIFY_AUDIO_SETTINGS,
-        Manifest.permission.CAPTURE_AUDIO_OUTPUT
+        ACCESS_MEDIA_LOCATION,
+        MODIFY_AUDIO_SETTINGS,
+        CAPTURE_AUDIO_OUTPUT
     )
 
-    //private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
+    // COMPROBAMOS LOS PERMISOS PRINCIPALES
     private fun hasNoPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
@@ -58,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         ) != PackageManager.PERMISSION_GRANTED
     }
 
+
+    // PEDIMOS LOS PERMISOS
     fun requestPermission() {
         // Preguntamos por los permisos si no los tenemos
         ActivityCompat.requestPermissions(this, permisos, 0);
@@ -88,24 +96,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-
         webView.webChromeClient = object : WebChromeClient() {
-
-
             override fun onPermissionRequest(request: PermissionRequest) {
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     request.grant(request.resources)
                 }
             }
-
-
         }
 
 
         webView.webViewClient = object : WebViewClient() {
-
+            // ESTO ES PARA QUE LA NAVEGACIÓN SEA DENTRO DE LA APP Y NO FUERA
             override fun shouldOverrideUrlLoading(
                 view: WebView?,
                 request: WebResourceRequest?
@@ -113,18 +114,20 @@ class MainActivity : AppCompatActivity() {
                 return false
             }
 
-
+            // IGNORA LOS ERRORES DE CERTIFICADOS SSSL
             override fun onReceivedSslError(
                 view: WebView,
                 handler: SslErrorHandler,
                 error: SslError
             ) {
-                handler.proceed() // Ignore SSL certificate errors
+                handler.proceed()
             }
 
 
         }
 
+
+        // OPCIONES DEL MOTOR WEBVIEW
         val settings: WebSettings = webView.settings
         settings.javaScriptEnabled = true
         settings.allowContentAccess = true
@@ -153,12 +156,13 @@ class MainActivity : AppCompatActivity() {
         settings.setGeolocationEnabled(true)
 
 
-        // TODA ESTA PARTE DE AQUI ES PARA PODER SUBIR FICHEROS AL SERVIDOR
+
         webView.setWebChromeClient(object : WebChromeClient() {
-
-
             //PARTE DE CHROME
 
+
+
+            // CON ESTO NOS ASEGURAMOS QUE PODEMOS TENER ACCESO A LA GRABACIÓN DE VIDEO Y AUDIO PARA LAS APIS HTML5
             override fun onPermissionRequest(request: PermissionRequest?) {
                 if (request?.resources!!.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE) || request?.resources!!.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)){
                     request.grant(request.resources)
@@ -166,7 +170,7 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-
+            // TODA ESTA PARTE DE AQUI ES PARA PODER SUBIR FICHEROS AL SERVIDOR
             override fun onShowFileChooser(
                 webView: WebView,
                 filePathCallback: ValueCallback<Array<Uri>>,
